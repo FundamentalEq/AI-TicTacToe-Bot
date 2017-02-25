@@ -53,7 +53,7 @@ def main() :
     Player2 = 'o'
     block = [[Empty for j in range(4)] for i in range(4)]
 
-    ob1 = MC.Block()
+    # ob1 = MC.Block()
     ob2 = fourcrossfour.Block()
     Player = random.choice([True,False])
     move = (-1,-1)
@@ -64,8 +64,8 @@ def main() :
             block = UpdateBlock(block,move,Player2)
 
         else :
-            move = ob1.move(move)
-            print "MC bot moving ",move
+            move = GetHumanMove()
+            print "Human bot moving ",move
             block = UpdateBlock(block,move,Player1)
 
 

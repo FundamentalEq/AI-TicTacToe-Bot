@@ -10,9 +10,9 @@ Inf = 1000000
 
 WinnerVal = 100000
 DrawUtility = 100
-ColValue = 1000
-RowValue = 1000
-DiagValue = 1000
+ColValue = 10
+RowValue = 10
+DiagValue = 10
 
 class Block() :
     def __init__(self) :
@@ -62,8 +62,9 @@ class Block() :
 
     def move(self,old_move) :
         # Update the opponents move on the block
-        print "Bot got enemy move as ",old_move
-        self.Update(old_move,Enemy)
+        print "AB Bot got enemy move as ",old_move
+        if old_move != Waste :
+            self.Update(old_move,Enemy)
 
         new_move = Waste
         move_utility = 0
@@ -135,38 +136,38 @@ class Block() :
             CtMe = self.block[i].count(Me)
             CtEnemy = self.block[i].count(Enemy)
             if CtMe == 0 :
-                ans -= CtEnemy * RowValue
+                ans -= RowValue ** CtEnemy
             elif CtEnemy == 0 :
-                ans += CtMe * ColValue
+                ans += RowValue ** CtMe
 
         for j in range(4) :
             col = [self.block[i][j] for i in range(4)]
             CtMe = col.count(Me)
             CtEnemy = col.count(Enemy)
             if CtMe == 0 :
-                ans -= CtEnemy * RowValue
+                ans -= ColValue ** CtEnemy
             elif CtEnemy == 0:
-                ans += CtMe * ColValue
+                ans += ColValue ** CtMe
 
         diag = [self.block[i][i] for i in range(4)]
         CtMe = diag.count(Me)
         CtEnemy = diag.count(Enemy)
         if CtMe == 0 :
-            ans -= CtEnemy * RowValue
+            ans -= DiagValue ** CtEnemy
         elif CtEnemy == 0 :
-            ans += CtMe * ColValue
+            ans += DiagValue ** CtMe
 
         diag = [self.block[i][3-i] for i in range(4)]
         CtMe = diag.count(Me)
         CtEnemy = diag.count(Enemy)
         if CtMe == 0 :
-            ans -= CtEnemy * RowValue
+            ans -= DiagValue ** CtEnemy
         elif CtEnemy == 0 :
-            ans += CtMe * ColValue
+            ans += DiagValue ** CtMe
 
-        print "Bot's version"
-        for i in range(4) :
-            print self.block[i]
-
-        print "utility is ", ans
+        # print "Bot's version"
+        # for i in range(4) :
+        #     print self.block[i]
+        #
+        # print "utility is ", ans
         return ans

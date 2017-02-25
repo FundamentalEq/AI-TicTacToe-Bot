@@ -1,4 +1,8 @@
-from fourcrossfour import *
+# from fourcrossfour import *
+import MC
+import fourcrossfour
+import sys
+import random
 
 def GetHumanMove() :
     print "U play with o"
@@ -49,17 +53,19 @@ def main() :
     Player2 = 'o'
     block = [[Empty for j in range(4)] for i in range(4)]
 
-    ob1 = Block()
-    Player = True
+    ob1 = MC.Block()
+    ob2 = fourcrossfour.Block()
+    Player = random.choice([True,False])
     move = (-1,-1)
     while True :
         if Player :
-            move = GetHumanMove()
+            move = ob2.move(move)
+            print "AB bot moving ",move
             block = UpdateBlock(block,move,Player2)
 
         else :
             move = ob1.move(move)
-            print "bot moving ",move
+            print "MC bot moving ",move
             block = UpdateBlock(block,move,Player1)
 
 
@@ -68,11 +74,11 @@ def main() :
 
         ret = GameStatus(block,Player1,Player2)
         if ret == 1 :
-            print "Player 1 Won"
+            print "Player 1 Won + MC"
             sys.exit()
 
         elif ret == 2 :
-            print "Player 2 Won"
+            print "Player 2 Won + AB"
             sys.exit()
 
         elif ret == 0 :

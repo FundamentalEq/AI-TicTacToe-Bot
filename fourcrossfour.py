@@ -4,19 +4,22 @@ Me = 'x'
 Enemy = 'o'
 Empty = '-'
 MaxSearchDepth = 5
+Waste = (-1,-1)
 
-ALPHA = -1000000
-BETA = 1000000
+Inf = 1000000
 
-WinnerVal = 10000
+WinnerVal = 100000
+DrawUtility = 100
+ColValue = 1000
+RowValue = 1000
+DiagValue = 1000
+
 class Block() :
     def __init__(self) :
         self.block = [[Empty for j in range(4)] for i in range(4)]
-        self.AvailableBlocks = [(i,j) for i in range(4) for j in range(4)]
 
-    def Update(self,old_move) :
-        self.block[old_move[0]][old_move[1]] = Enemy
-        self.AvailableBlocks.remove((old_move[0],old_move[1]))
+    def Update(self,old_move,Player) :
+        self.block[old_move[0]][old_move[1]] = Player
 
     def WinVal(self,flag) :
         if flag == Me :
@@ -49,24 +52,121 @@ class Block() :
             return True
         return False
 
-    def move(self,old_move) :
-        depth = 0
-        alpha = ALPHA
-        beta = BETA
-        new_move = old_move
-        move_utility = 0
-        (new_move,move_utility) = self.search(old_move,Me,depth,alpha,beta)
+    def FindAvailableMoves(self) :
+        AvailableMoves = []
+        for i in range(4) :
+            for j in range(4) :
+                if self.block[i][j] == Empty :
+                    AvailableMoves.append((i,j))
+        return AvailableMoves
 
-    def search(old_move,flag,depth,alpha,beta) :
+    def move(self,old_move) :
+        # Update the opponents move on the block
+        print "Bot got enemy move as ",old_move
+        self.Update(old_move,Enemy)
+
+        new_move = Waste
+        move_utility = 0
+        (new_move,move_utility) = self.search(True,0,-Inf,Inf)
+        self.Update(new_move,Me)
+        return new_move
+
+    def search(self,flag,depth,ParentAlpha,ParentBeta) :
         if depth == MaxSearchDepth :
             utility = self.utility()
-            return (old_move,utility)
+            return (Waste,utility)
 
         ret = self.CheckWinStatus()
         if ret!=0 :
-            return (old_move,ret)
+            return (Waste,ret)
 
         if self.CheckDraw() :
-            return (old_move,0)
+            return (Waste,DrawUtility)
 
-        avail_store = self.AvailableBlocks
+        # get the list of the available Moves
+        avail_store = self.FindAvailableMoves()
+
+        # if this is a max node
+        if flag :
+            NodeBeta = ParentBeta
+            NodeAlpha = -Inf
+            Player = Me
+        # this is a min node
+        else :
+            NodeBeta = Inf
+            NodeAlpha = ParentAlpha
+            Player = Enemy
+
+        MoveUtility = 0
+        ChoosenNode = Waste
+
+        for move in avail_store :
+            # do the move
+            self.Update(move,Player)
+            nextMove,MoveUtility = self.search(flag ^ 1 ,depth + 1 ,NodeAlpha,NodeBeta)
+
+            # undo the move
+            self.block[move[0]][move[1]] = Empty
+
+            # if max node update NodeAlpha
+            if flag :
+                if MoveUtility > NodeAlpha :
+                    NodeAlpha = MoveUtility
+                    ChoosenNode = move
+
+            # else update beta
+            else :
+                if NodeBeta < MoveUtility :
+                    NodeBeta = MoveUtility
+                    ChoosenNode = Move
+
+                    if NodeBeta <= NodeAlpha :
+                        # this node returns a values  < than already promissed value
+                        # no need to search furhter
+                        return (Waste,NodeBeta)
+
+        return (ChoosenNode,max(NodeBeta,NodeAlpha))
+
+
+
+    def utility(self) :
+        ans = 0
+        for i in range(4) :
+            CtMe = self.block[i].count(Me)
+            CtEnemy = self.block[i].count(Enemy)
+            if CtMe == 0 :
+                ans -= CtEnemy * RowValue
+            elif CtEnemy == 0 :
+                ans += CtMe * ColValue
+
+        for j in range(4) :
+            col = [self.block[i][j] for i in range(4)]
+            CtMe = col.count(Me)
+            CtEnemy = col.count(Enemy)
+            if CtMe == 0 :
+                ans -= CtEnemy * RowValue
+            elif CtEnemy == 0:
+                ans += CtMe * ColValue
+
+        diag = [self.block[i][i] for i in range(4)]
+        CtMe = diag.count(Me)
+        CtEnemy = diag.count(Enemy)
+        if CtMe == 0 :
+            ans -= CtEnemy * RowValue
+        elif CtEnemy == 0 :
+            ans += CtMe * ColValue
+
+        diag = [self.block[i][3-i] for i in range(4)]
+        CtMe = diag.count(Me)
+        CtEnemy = diag.count(Enemy)
+        if CtMe == 0 :
+            ans -= CtEnemy * RowValue
+        elif CtEnemy == 0 :
+            ans += CtMe * ColValue
+
+        print "Bot's version"
+        for i in range(4) :
+            print self.block[i]
+
+        print "utility is ", ans
+        return ans

@@ -1,5 +1,6 @@
 # from fourcrossfour import *
 import MC
+import fourcrossfourh
 import fourcrossfour
 import sys
 import random
@@ -47,25 +48,25 @@ def UpdateBlock(block,move,player) :
     block[move[0]][move[1]] = player
     return block
 
-def main() :
+def main_game() :
     Empty = '-'
     Player1 = 'x'
     Player2 = 'o'
     block = [[Empty for j in range(4)] for i in range(4)]
 
-    # ob1 = MC.Block()
-    ob2 = fourcrossfour.Block()
+    ob1 = fourcrossfour.Block()
+    ob2 = fourcrossfourh.Block()
     Player = random.choice([True,False])
     move = (-1,-1)
     while True :
         if Player :
             move = ob2.move(move)
-            print "AB bot moving ",move
+            print "ABh bot moving ",move
             block = UpdateBlock(block,move,Player2)
 
         else :
-            move = GetHumanMove()
-            print "Human bot moving ",move
+            move = ob1.move(move)
+            print "AB bot moving ",move
             block = UpdateBlock(block,move,Player1)
 
 
@@ -74,17 +75,33 @@ def main() :
 
         ret = GameStatus(block,Player1,Player2)
         if ret == 1 :
-            print "Player 1 Won + MC"
-            sys.exit()
+            print "Player 1 Won + AB"
+            return 1
 
         elif ret == 2 :
-            print "Player 2 Won + AB"
-            sys.exit()
+            print "Player 2 Won + ABh"
+            return 2
 
         elif ret == 0 :
             print "Game Draw"
-            sys.exit()
+            return 0
 
         Player ^= 1
+
+def main():
+    ab=0
+    abh=0
+    draw=0
+    for i in range(100):
+        t=main_game()
+        if(t==1) :
+            ab+=1
+        elif(t==0):
+            draw+=1
+        else:
+            abh+=1
+    print("abh",abh)
+    print("ab",ab)
+    print("draw",draw)
 
 main()

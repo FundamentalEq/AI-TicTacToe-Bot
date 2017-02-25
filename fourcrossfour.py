@@ -119,7 +119,7 @@ class Block() :
             else :
                 if NodeBeta > MoveUtility :
                     NodeBeta = MoveUtility
-                    ChoosenNode = Move
+                    ChoosenNode = move
 
                     if NodeBeta <= NodeAlpha :
                         # this node returns a values  < than already promissed value
@@ -129,7 +129,7 @@ class Block() :
         if flag:
             return (ChoosenNode,NodeAlpha)
         else:
-            return (ChoosenNode,NodeBeta)    
+            return (ChoosenNode,NodeBeta)
 
 
 

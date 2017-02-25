@@ -117,7 +117,7 @@ class Block() :
 
             # else update beta
             else :
-                if NodeBeta < MoveUtility :
+                if NodeBeta > MoveUtility :
                     NodeBeta = MoveUtility
                     ChoosenNode = Move
 
@@ -126,7 +126,10 @@ class Block() :
                         # no need to search furhter
                         return (Waste,NodeBeta)
 
-        return (ChoosenNode,max(NodeBeta,NodeAlpha))
+        if flag:
+            return (ChoosenNode,NodeAlpha)
+        else:
+            return (ChoosenNode,NodeBeta)    
 
 
 

@@ -14,6 +14,7 @@ class Cell4State() :
             self.CurrentActiveStates = 0
             self.CurState = [self.Empty,self.Empty,self.Empty,self.Empty]
             self.StateUtility = [ 0 for state in range(81) ]
+            self.AvailableMoves = [ [] for state in range(81) ]
             self.dfs(self.CurrentActiveStates)
 
         def dfs(self,StateNo) :
@@ -26,6 +27,9 @@ class Cell4State() :
             for cell in range(4) :
                 # check for Empty cell
                 if self.CurState[cell] == self.Empty :
+                    # Add the cell to list of available moves from the current state
+                    self.AvailableMoves[StateNo].append(cell)
+                    
                     # if payed by me
                     self.CurState[cell] = self.Me
 

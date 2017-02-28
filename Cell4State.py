@@ -3,14 +3,15 @@ class Cell4State() :
         def __init__(self) :
             self.Empty = '-'
             self.Me = 'x'
-            self.MeNu = 0
             self.Enemy = 'o'
+            self.MeNu = 0
             self.EnemyNu = 1
-            self.Empty = '-'
             self.PowersOf10 = [1,10,100,1000,10000]
             self.States = {}
             self.ForwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.BackwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            self.UtilityChangeForward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            self.UtilityChangeBackward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.CurrentActiveStates = 0
             self.CurState = [self.Empty,self.Empty,self.Empty,self.Empty]
             self.StateUtility = [ 0 for state in range(81) ]
@@ -29,7 +30,7 @@ class Cell4State() :
                 if self.CurState[cell] == self.Empty :
                     # Add the cell to list of available moves from the current state
                     self.AvailableMoves[StateNo].append(cell)
-                    
+
                     # if payed by me
                     self.CurState[cell] = self.Me
 
@@ -44,6 +45,10 @@ class Cell4State() :
                     # Add a Backward Edge
                     self.BackwardAd[NextStateNo][cell][self.MeNu] = StateNo
 
+                    # ForwardUtility Change
+                    self.UtilityChangeForward[StateNo][cell][self.MeNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
+                    # BackwardUtility Change
+                    self.UtilityChangeForward[NextStateNo][cell][self.MeNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
 
 
                     # if plpayed by Enemy
@@ -60,6 +65,12 @@ class Cell4State() :
                     # Add a Backward Edge
                     self.BackwardAd[NextStateNo][cell][self.EnemyNu] = StateNo
 
+                    # ForwardUtility Change
+                    self.UtilityChangeForward[StateNo][cell][self.EnemyNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
+                    # BackwardUtility Change
+                    self.UtilityChangeForward[NextStateNo][cell][self.EnemyNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
+
+
                     # Restore the cell
                     self.CurState[cell] = self.Empty
 
@@ -72,28 +83,29 @@ class Cell4State() :
                 return self.PowersOf10[MeCount]
             return 0
 
-        def BlockToRow(self,move) :
-            return move[1]
-
-        def BlockToCol(self,move) :
-            return move[0]
-
-        def BlocktoDiag(self,move) :
-            return move[0]
-
-        def UpdateStateForward(self,CurStateNo,Cell,Player) :
-            # print self.ForwardAd[CurStateNo][Cell][Player], self.States[self.ForwardAd[CurStateNo][Cell][Player]]
-            return self.ForwardAd[CurStateNo][Cell][Player]
-
-        def UpdateStateBack(self,CurStateNo,Cell,Player) :
-            # print self.BackwardAd[CurStateNo][Cell][Player], self.States[self.BackwardAd[CurStateNo][Cell][Player]]
-            return self.BackwardAd[CurStateNo][Cell][Player]
+        # def BlockToRow(self,move) :
+        #     return move[1]
+        #
+        # def BlockToCol(self,move) :
+        #     return move[0]
+        #
+        # def BlocktoDiag(self,move) :
+        #     return move[0]
+        #
+        # def UpdateStateForward(self,CurStateNo,Cell,Player) :
+        #     # print self.ForwardAd[CurStateNo][Cell][Player], self.States[self.ForwardAd[CurStateNo][Cell][Player]]
+        #     return self.ForwardAd[CurStateNo][Cell][Player]
+        #
+        # def UpdateStateBack(self,CurStateNo,Cell,Player) :
+        #     # print self.BackwardAd[CurStateNo][Cell][Player], self.States[self.BackwardAd[CurStateNo][Cell][Player]]
+        #     return self.BackwardAd[CurStateNo][Cell][Player]
 
 
 # a = Cell4State()
+# print a.States[str(['-','-','x','x'])]
 # b = [ "aak" for i in range(81)]
 # for state in a.States :
-#     b[a.States[state]] = state
+    # b[a.States[state]] = state
 # for i in range(81) :
 #     print i, b[i] , a.StateUtility[i]
 # print a.States

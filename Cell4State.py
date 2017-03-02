@@ -6,11 +6,15 @@ class Cell4State() :
             self.Enemy = 'o'
             self.MeNu = 0
             self.EnemyNu = 1
+            self.WinUtility = 10000
+            self.NormalizationConstant = 10000
             self.PowersOf10 = [1,10,100,1000,10000]
             self.States = {}
             self.ForwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.BackwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.UtilityChangeForward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            self.NormalizedUCF = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            self.NormalizedUCB = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.UtilityChangeBackward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.CurrentActiveStates = 0
             self.CurState = [self.Empty,self.Empty,self.Empty,self.Empty]
@@ -47,8 +51,12 @@ class Cell4State() :
 
                     # ForwardUtility Change
                     self.UtilityChangeForward[StateNo][cell][self.MeNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
+                    # Normalized ForwardUtility
+                    self.NormalizedUCF[StateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.MeNu])/float(self.NormalizationConstant))
                     # BackwardUtility Change
-                    self.UtilityChangeForward[NextStateNo][cell][self.MeNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
+                    self.UtilityChangeBackward[NextStateNo][cell][self.MeNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
+                    # Normalized BackwardUtility
+                    self.NormalizedUCB[NextStateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.MeNu])/float(self.NormalizationConstant))
 
 
                     # if plpayed by Enemy
@@ -67,9 +75,12 @@ class Cell4State() :
 
                     # ForwardUtility Change
                     self.UtilityChangeForward[StateNo][cell][self.EnemyNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
+                    # Normalized ForwardUtility
+                    self.NormalizedUCF[StateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
                     # BackwardUtility Change
-                    self.UtilityChangeForward[NextStateNo][cell][self.EnemyNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
-
+                    self.UtilityChangeBackward[NextStateNo][cell][self.EnemyNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
+                    # Normalized BackwardUtility
+                    self.NormalizedUCB[NextStateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
 
                     # Restore the cell
                     self.CurState[cell] = self.Empty

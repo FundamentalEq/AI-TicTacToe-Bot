@@ -69,14 +69,19 @@ class Board() :
             MoveSet = OrderMoves()
 
             self.Blocks[ BlockNo ].UpdateForward( MoveSet[0] , player )
+            self.UpdateBoardUtility()
+
             # For the thought best move do the complete search
             current = -self.alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
             BestMove = MoveSet[0]
-            self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
 
+            self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
+            self.UpdateBoardUtility()
+            
             for i in range(1,len(MoveSet)) :
                 # Play according to assumption
                 self.Blocks[ BlockNo ].UpdateForward( MoveSet[i] , player )
+                self.UpdateBoardUtility()
                 score = -self.alpabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
 
                 # Case where our assumption fails
@@ -84,6 +89,7 @@ class Board() :
                     score = -alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
 
                 self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
+                self.UpdateBoardUtility()
 
                 if score >= current :
                     current = score

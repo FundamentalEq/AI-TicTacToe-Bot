@@ -116,7 +116,8 @@ class Cell4State() :
         #     return self.BackwardAd[CurStateNo][Cell][Player]
 
 
-# a = Cell4State()
+a = Cell4State()
+print a.AvailableMoves[0]
 # # print a.NormalizedUCF
 # # print "aa",a.States[str(['-','o','o','o'])]
 # # print "aa" , a.StateUtility[70]

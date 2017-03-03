@@ -66,21 +66,23 @@ class Tiedmagnets() :
         print "returning move ",move
         return move
     def CheckGameOver(self) :
+        print "Inside CheckGameOver "
         Draws = 0
         for row in range(4) :
             if self.RowS[row][self.WinNu] == 4 or self.RowS[row][self.LoseNu] == 4 :
                 return True
             Draws += self.RowS[row][self.DrawNu]
         for col in range(4) :
-            if self.ColS[col][self.WinNu] == 4 or self.Cols[col][self.LoseNu] == 4 :
+            if self.ColS[col][self.WinNu] == 4 or self.ColS[col][self.LoseNu] == 4 :
                 return True
-            Draws +=  self.RowS[self.DrawNu]
+            Draws +=  self.ColS[col][self.DrawNu]
         for diag in range(2) :
             if self.DiagS[diag][self.WinNu] == 4 or self.DiagS[diag][self.LoseNu] == 4 :
                 return True
             Draws += self.DiagS[diag][self.DrawNu]
         if Draws == 16 :
             return True
+        print "Returning False"
         return False
 
     def FindBoardUtility(self) :
@@ -102,7 +104,7 @@ class Tiedmagnets() :
         for block in range(16) :
             ans2 += self.Weights[block] * self.Blocks[block].BlockUtility
         ans2 = float(ans2)/float(10)
-
+        print "BoardUtility is " ,ans + ans2
         return ans + ans2
     def NUtility(self,val) :
         if val > 0 :
@@ -162,6 +164,7 @@ class Tiedmagnets() :
 
 
     def UndoMove(self,BlockNo,Move,Player) :
+        print " in undo "
         PrevVal = self.Blocks[BlockNo].BlockUtility
 
         if self.Blocks[BlockNo].Status == "Won" :
@@ -211,11 +214,12 @@ class Tiedmagnets() :
 
 
     def MoveSet(self,BlockNo) :
-        print "inside BlockNo : ",BlockNo
+        print "Moveset inside BlockNo : ",BlockNo
         AvailableMoves = []
         for row in range(4) :
-            AvailableMoves = AvailableMoves + LineState[ self.Blocks[BlockNo].Rows[row] ].AvailableMoves
-
+            for col in LineState.AvailableMoves[ self.Blocks[BlockNo].Rows[row] ] :
+                AvailableMoves.append((row,col))
+        print AvailableMoves
         def comp(move1,move2) :
             if self.Blocks[BlockNo].History[move1[0]][move1[1]] < self.Blocks[BlockNo].History[move2[0]][move2[1]] :
                 return -1
@@ -258,30 +262,31 @@ class Tiedmagnets() :
 
         return AvailableMoves
 
+    def FindNextBlock(self,Move) :
+        return 4*Move[0] + Move[1]
     def alphabetaRunner(self,depth,alpha,beta,player,BlockNo) :
         if BlockNo != -1 and self.Blocks[BlockNo].Status == "War" :
-            print "inside Ruuner not free node BlockNo : ",BlockNo
+            print "inside Ruuner War BlockNo : ",BlockNo
             MoveSet = self.MoveSet(BlockNo)
-            print MoveSet
             self.MakeMove(BlockNo,MoveSet[0],player)
-
+            print "Made 1st best move"
             # For the thought best move do the complete search
-            current = -self.alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+            current = -self.alphabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(MoveSet[0]))
             BestMove = MoveSet[0]
 
             self.UndoMove(BlockNo,MoveSet[0],player)
 
             for i in range(1,len(MoveSet)) :
                 # Play according to assumption
-                self.MakeMove(Blocks,MoveSet[i],player)
-
-                score = -self.alpabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+                self.MakeMove(BlockNo,MoveSet[i],player)
+                print "Runner At depth ",depth ," making move ",i
+                score = -self.alphabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(MoveSet[i]))
 
                 # Case where our assumption fails
                 if score > alpha and score < beta :
-                    score = -alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+                    score = -alphabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(MoveSet[i]))
 
-                self.UndoMove(Blocks,MoveSet[i],player)
+                self.UndoMove(BlockNo,MoveSet[i],player)
 
                 if score >= current :
                     current = score
@@ -296,17 +301,17 @@ class Tiedmagnets() :
 
         # We are at a free node
         else :
-            print "Inside Free node"
+            print "Inside Runner Free node"
             MoveSet = self.BlockSet(player)
             print MoveSet
             current,BestMove = self.alphabetaRunner(max(depth-1,2),alpha,beta,player,MoveSet[0])
 
             for i in range(1,len(MoveSet)) :
-                score,move = self.alpabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
+                score,move = self.alphabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
 
                 # Case Our assumption Fails
                 if score > alpha and score < beta :
-                    score,move = self.alpabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
+                    score,move = self.alphabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
 
                 if score >= current :
                     current = score
@@ -320,34 +325,40 @@ class Tiedmagnets() :
 
     def alphabeta(self,depth,alpha,beta,player,BlockNo) :
 
+        print "Inside alphabeta BlockNo : ",BlockNo," Player : ",player," depth : ",depth
         if depth == 0 or self.CheckGameOver() :
+            print "FindBoardUtility"
             return self.FindBoardUtility()
 
         # order the moves in the required order
         if self.Blocks[BlockNo].Status == "War" :
-
+            print "alphabeta - Inside War"
             MoveSet = self.MoveSet(BlockNo)
 
             self.MakeMove(BlockNo,MoveSet[0],player)
 
             # For the thought best move do the complete search
-            current = -self.alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+            current = -self.alphabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(MoveSet[0]))
             BestMove = MoveSet[0]
 
             self.UndoMove(BlockNo,MoveSet[0],player)
+            print "alphabeta - done making 1st move"
 
             for i in range(1,len(MoveSet)) :
                 # Play according to assumption
-                self.MakeMove(Blocks,MoveSet[i],player)
+                self.MakeMove(BlockNo,MoveSet[i],player)
 
-                score = -self.alpabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+                print "alphabeta at depth ",depth," making move ",i
+                score = -self.alphabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(MoveSet[i]))
+                print "Got score ",score
 
                 # Case where our assumption fails
                 if score > alpha and score < beta :
-                    score = -alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+                    print "inside false assumption"
+                    score = -self.alphabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(MoveSet[i]))
 
-                self.UndoMove(Blocks,MoveSet[i],player)
-
+                self.UndoMove(BlockNo,MoveSet[i],player)
+                print "undo"
                 if score >= current :
                     current = score
                     BestMove = MoveSet[i]
@@ -362,14 +373,15 @@ class Tiedmagnets() :
 
         # We are at a free node
         else :
+            print "Inside Not runners freenode"
             MoveSet = self.BlockSet(player)
-            current = self.alpabeta(max(depth-1,2),alpha,beta,player,MoveSet[0])
+            current = self.alphabeta(max(depth-1,2),alpha,beta,player,MoveSet[0])
 
             for i in range(1,len(MoveSet)) :
-                score = self.alpabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
+                score = self.alphabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
 
                 if score > alpha and score < beta :
-                    score = self.alpabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
+                    score = self.alphabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
 
                 if score >= current :
                     current = score

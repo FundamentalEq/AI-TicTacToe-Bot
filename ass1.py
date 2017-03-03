@@ -1,5 +1,6 @@
 from Block import *
 from Cell4State import *
+import time
 class Tiedmagnets() :
     def __init__(self) :
         # print "Board formed"
@@ -35,6 +36,7 @@ class Tiedmagnets() :
             if self.Index[block][0] + self.Index[block][1] == 3 :
                 self.Diags[1] +=  self.Blocks[block].BlockUtility
         self.PowersOf2 = [2**i for i in range(30)]
+        self.ExtensionGiven = False
 
         # Current BoardUtility
         self.BoardUtility = 0
@@ -59,12 +61,14 @@ class Tiedmagnets() :
         return 4*BlockRow + BlockCol
 
     def move(self, board, old_move, flag):
+        start = time.time()
         # print "my bot called with" , old_move
         BlockNo = self.UpdateEnemyMove(old_move)
         # print "Block no" ,BlockNo
         move,val = self.alphabetaRunner(self.Maxdepth,-100000,100000,self.MeNu,BlockNo)
-        # print "returning move ",move
+        print "returning move ",move
         self.MakeMove((move[0]//4) * 4 + (move[1]//4),(move[0]%4,move[1]%4),self.MeNu)
+        print "Time taken : ", time.time() - start
         return move
     def CheckGameOver(self) :
         # print "Inside CheckGameOver "
@@ -276,6 +280,12 @@ class Tiedmagnets() :
             # print "Finished"
             BestMove = MoveSet[0]
 
+            if current > alpha :
+                if current >= beta :
+                    self.Blocks[BlockNo].History[BestMove[0]][BestMove[1]] += self.PowersOf2[depth]
+                    return current
+                alpha = current
+
             self.UndoMove(BlockNo,MoveSet[0],player)
 
             for i in range(1,len(MoveSet)) :
@@ -291,12 +301,12 @@ class Tiedmagnets() :
 
                 self.UndoMove(BlockNo,MoveSet[i],player)
 
-                if score >= current :
+                if score > current :
                     current = score
                     BestMove = MoveSet[i]
                     if score > alpha :
                         alpha = score
-                    if score > beta :
+                    if score >= beta :
                         break
 
             BestMove = (BestMove[0] + 4*self.Index[BlockNo][0] , BestMove[1] + 4*self.Index[BlockNo][1])
@@ -306,26 +316,20 @@ class Tiedmagnets() :
         else :
             # print "Inside Runner Free node"
             MoveSet = self.BlockSet(player)
-            # print MoveSet
-            current,BestMove = self.alphabetaRunner(max(depth-1,2),alpha,beta,player,MoveSet[0])
-            # print "Finished Block ",0
-
-            for i in range(1,len(MoveSet)) :
-                # print "Doing Block ",i
-                score,move = self.alphabetaRunner(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
-                # print "Finished Block ",i
-                # Case Our assumption Fails
-                if score > alpha and score < beta :
-                    score,move = self.alphabetaRunner(max(depth-1,2),alpha,beta,player,MoveSet[i])
-
-                if score >= current :
-                    current = score
+            BestMove = self.WasteMove
+            for i in range(len(MoveSet)) :
+                if depth < 2 and not self.ExtensionGiven :
+                    self.ExtensionGiven = True
+                    score,move = self.alphabetaRunner(2,alpha,beta,player,MoveSet[i])
+                    self.ExtensionGiven = False
+                else :
+                    score,move = self.alphabetaRunner(depth-1,alpha,beta,player,MoveSet[i])
+                if score >= alpha :
                     BestMove = move
-                    if score > alpha :
-                        alpha = score
-                    if score > beta :
-                        break
-            return current,BestMove
+                    alpha = score
+                if score >= beta :
+                    break
+            return alpha,BestMove
 
     def alphabeta(self,depth,alpha,beta,player,BlockNo) :
 
@@ -344,6 +348,11 @@ class Tiedmagnets() :
             # For the thought best move do the complete search
             current = -self.alphabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(MoveSet[0]))
             BestMove = MoveSet[0]
+            if current > alpha :
+                if current >= beta :
+                    self.Blocks[BlockNo].History[BestMove[0]][BestMove[1]] += self.PowersOf2[depth]
+                    return current
+                alpha = current
 
             self.UndoMove(BlockNo,MoveSet[0],player)
             # print "alphabeta - done making 1st move"
@@ -363,12 +372,12 @@ class Tiedmagnets() :
 
                 self.UndoMove(BlockNo,MoveSet[i],player)
                 # print "undo"
-                if score >= current :
+                if score > current :
                     current = score
                     BestMove = MoveSet[i]
                     if score > alpha :
                         alpha = score
-                    if score > beta :
+                    if score >= beta :
                         break
 
             # Update History Table
@@ -380,19 +389,17 @@ class Tiedmagnets() :
         else :
             # print "Inside Not runners freenode"
             MoveSet = self.BlockSet(player)
-            current = self.alphabeta(max(depth-1,2),alpha,beta,player,MoveSet[0])
 
-            for i in range(1,len(MoveSet)) :
-                score = self.alphabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
+            for i in range(len(MoveSet)) :
+                if depth-1 < 2 and not self.ExtensionGiven :
+                    self.ExtensionGiven = True
+                    score = self.alphabeta(2,alpha,beta,player,MoveSet[i])
+                    self.ExtensionGiven = False
+                else :
+                    score = self.alphabeta(depth-1,alpha,beta,player,MoveSet[i])
 
-                if score > alpha and score < beta :
-                    score = self.alphabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
-
-                if score >= current :
-                    current = score
-                    if score > alpha :
-                        alpha = score
-                    if score > beta :
-                        break
-
-            return current
+                if score >= alpha :
+                    alpha = score
+                if alpha >= beta :
+                    break
+            return alpha

@@ -185,7 +185,7 @@ def gameplay(obj1, obj2):				#game simulator
 		#player 1 turn
 		temp_board_status = copy.deepcopy(game_board.board_status)
 		temp_block_status = copy.deepcopy(game_board.block_status)
-		signal.alarm(TIME)
+		# signal.alarm(TIME)
 
 		try:									#try to get player 1's move
 			p1_move = obj1.move(game_board, old_move, fl1)
@@ -195,13 +195,15 @@ def gameplay(obj1, obj2):				#game simulator
 			MESSAGE = 'TIME OUT'
 			pts2 = 16
 			break
-		except Exception as e:
-			print e
-			WINNER = 'P2'
-			MESSAGE = 'INVALID MOVE'
-			pts2 = 16
-			break
-		signal.alarm(0)
+		# except Exception as e:
+		# 	print type(e)
+		# 	print e.args
+		# 	print e
+		# 	WINNER = 'P2'
+		# 	MESSAGE = 'INVALID MOVE'
+		# 	pts2 = 16
+		# 	break
+		# signal.alarm(0)
 
 		#check if board is not modified and move returned is valid
 		if (game_board.block_status != temp_block_status) or (game_board.board_status != temp_board_status):

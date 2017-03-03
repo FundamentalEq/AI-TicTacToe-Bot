@@ -13,9 +13,9 @@ class Board() :
         self.Blocks = [ Block.Block() for block in range(16) ]
 
         # Current BoardUtility
-        self.BoardUtility = 0
-        for block in self.Blocks :
-            self.BoardUtility += block.BlockUtility
+        self.BoardUtility = 1
+        # for block in self.Blocks :
+        #     self.BoardUtility += block.BlockUtility
 
         # Current Board
         # self.Board = [ self.Empty for col in range(16) for row in range(16) ]
@@ -68,28 +68,29 @@ class Board() :
 
             MoveSet = OrderMoves()
 
-            self.Blocks[ BlockNo ].UpdateForward( MoveSet[0] , player )
-            self.UpdateBoardUtility()
+            ret = self.Blocks[ BlockNo ].UpdateForward( MoveSet[0] , player )
+            self.BoardUtility *= ret
 
             # For the thought best move do the complete search
             current = -self.alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
             BestMove = MoveSet[0]
 
-            self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
-            self.UpdateBoardUtility()
-            
+            ret = self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
+            self.BoardUtility *= ret
+
             for i in range(1,len(MoveSet)) :
                 # Play according to assumption
-                self.Blocks[ BlockNo ].UpdateForward( MoveSet[i] , player )
-                self.UpdateBoardUtility()
+                ret = self.Blocks[ BlockNo ].UpdateForward( MoveSet[i] , player )
+                self.BoardUtility *= ret
+
                 score = -self.alpabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
 
                 # Case where our assumption fails
                 if score > alpha and score < beta :
                     score = -alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
 
-                self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
-                self.UpdateBoardUtility()
+                ret = self.Blocks[ BlockNo ].UpdateBackward( MoveSet[0] , player)
+                self.BoardUtility *= ret
 
                 if score >= current :
                     current = score

@@ -6,12 +6,12 @@ class Block() :
         self.Rows = [ 0 for row in range(4)]
         self.Cols = [ 0 for col in range(4)]
         self.Diags = [ 0 for diag in range(2)]
-
+        self.History = [ [0  for col in range(4)] for row in range(4) ]
         # No of Empty Cells
         self.EmptyCells = 16
 
         # Current Utility of the Block
-        self.BlockUtility = 4*lineState.StateUtility[0]
+        self.BlockUtility = 10*LineState.StateUtility[0]
 
         self.Status = "War"
 

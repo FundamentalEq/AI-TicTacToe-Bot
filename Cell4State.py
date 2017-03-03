@@ -13,14 +13,16 @@ class Cell4State() :
             self.ForwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.BackwardAd = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.UtilityChangeForward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
-            self.NormalizedUCF = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
-            self.NormalizedUCB = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            # self.NormalizedUCF = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
+            # self.NormalizedUCB = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.UtilityChangeBackward = [ [ [-1,-1] for cell in range(4)] for state in range(81) ]
             self.CurrentActiveStates = 0
             self.CurState = [self.Empty,self.Empty,self.Empty,self.Empty]
             self.StateUtility = [ 0 for state in range(81) ]
             self.AvailableMoves = [ [] for state in range(81) ]
             self.dfs(self.CurrentActiveStates)
+            self.WinState = self.States[str([self.Me,self.Me,self.Me,self.Me])]
+            self.LoseState = self.States[str([self.Enemy,self.Enemy,self.Enemy,self.Enemy])]
 
         def dfs(self,StateNo) :
             # Add the state to the list of known states
@@ -52,11 +54,11 @@ class Cell4State() :
                     # ForwardUtility Change
                     self.UtilityChangeForward[StateNo][cell][self.MeNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
                     # Normalized ForwardUtility
-                    self.NormalizedUCF[StateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.MeNu])/float(self.NormalizationConstant))
+                    # self.NormalizedUCF[StateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.MeNu])/float(self.NormalizationConstant))
                     # BackwardUtility Change
                     self.UtilityChangeBackward[NextStateNo][cell][self.MeNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
                     # Normalized BackwardUtility
-                    self.NormalizedUCB[NextStateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.MeNu])/float(self.NormalizationConstant))
+                    # self.NormalizedUCB[NextStateNo][cell][self.MeNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.MeNu])/float(self.NormalizationConstant))
 
 
                     # if plpayed by Enemy
@@ -76,11 +78,11 @@ class Cell4State() :
                     # ForwardUtility Change
                     self.UtilityChangeForward[StateNo][cell][self.EnemyNu] = self.StateUtility[NextStateNo] - self.StateUtility[StateNo]
                     # Normalized ForwardUtility
-                    self.NormalizedUCF[StateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
+                    # self.NormalizedUCF[StateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeForward[StateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
                     # BackwardUtility Change
                     self.UtilityChangeBackward[NextStateNo][cell][self.EnemyNu] = self.StateUtility[StateNo] - self.StateUtility[NextStateNo]
                     # Normalized BackwardUtility
-                    self.NormalizedUCB[NextStateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
+                    # self.NormalizedUCB[NextStateNo][cell][self.EnemyNu] = 10**(float(self.UtilityChangeBackward[NextStateNo][cell][self.EnemyNu])/float(self.NormalizationConstant))
 
                     # Restore the cell
                     self.CurState[cell] = self.Empty
@@ -88,6 +90,8 @@ class Cell4State() :
         def FindCurStateUtility(self) :
             MeCount =  self.CurState.count(self.Me)
             EnemyCount =  self.CurState.count(self.Enemy)
+            if MeCount == 0 and EnemyCount == 0 :
+                return 0
             if MeCount == 0 :
                 return -self.PowersOf10[EnemyCount]
             if EnemyCount == 0 :
@@ -113,10 +117,27 @@ class Cell4State() :
 
 
 # a = Cell4State()
-# print a.States[str(['-','-','x','x'])]
+# # print a.NormalizedUCF
+# # print "aa",a.States[str(['-','o','o','o'])]
+# # print "aa" , a.StateUtility[70]
 # b = [ "aak" for i in range(81)]
 # for state in a.States :
-    # b[a.States[state]] = state
+#     b[a.States[state]] = state
+#
+# print b[a.WinState]
+# print b[a.LoseState]
+#
+# for i in range(81) :
+#     if abs(a.StateUtility[i]) == 1000 :
+#         print i,b[i]
+# print "*********************************" , a.NormalizedUCF[42][3][1]
+# for i in range(81) :
+#     get = False
+#     for cell in range(4) :
+#         for p in range(2) :
+#             if abs(a.NormalizedUCF[i][cell][p]) > 7 :
+#                 print b[i]
+#
 # for i in range(81) :
 #     print i, b[i] , a.StateUtility[i]
 # print a.States

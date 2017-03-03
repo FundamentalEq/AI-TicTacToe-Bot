@@ -25,7 +25,7 @@ class Board() :
         self.LoseNu = 1
         self.DrawNu = 2
         self.Weights = [ 5 , 3 , 3 , 5 , 3 , 7  , 7 , 3 , 3 , 7 , 7 , 3 , 5 , 3 , 3 , 5 ]
-
+        self.Maxdepth = 5
         for block in range(16) :
             self.Rows[self.Index[block][0]] += self.Blocks[block].BlockUtility
             self.Cols[self.Index[block][1]] += self.Blocks[block].BlockUtility
@@ -33,8 +33,6 @@ class Board() :
                 self.Diags[0] += self.Blocks[block].BlockUtility
             if self.Index[block][0] + self.Index[block][1] == 3 :
                 self.Diags[1] +=  self.Blocks[block].BlockUtility
-
-        for row in range(4) :
 
         # Current BoardUtility
         self.BoardUtility = 0
@@ -60,15 +58,8 @@ class Board() :
 
     def move(self, board, old_move, flag):
         BlockNo = self.UpdateEnemyMove(old_move)
-        return self.Move(BlockNo)
-
-    def Move(self,BlockNo) :
-        # Free Move
-        if self.CurBlock == -1 :
-            pass
-
-        # We know the block where we are supposed to move
-
+        move,val = self.alphabetaRunner(self.Maxdepth,-100000,100000,self.MeNu,BlockNo)
+        return move
     def CheckGameOver(self) :
         Draws = 0
         for row in range(4) :
@@ -214,16 +205,8 @@ class Board() :
             self.Diags[1] += Change
 
 
-    def alphabetaRunner(self,depth,alpha,beta,playe,BlockNo) :
-
-    def alphabeta(self,depth,alpha,beta,player,BlockNo) :
-
-        if depth == 0 or self.CheckGameOver() :
-            return self.FindBoardUtility()
-
-        # order the moves in the required order
+    def alphabetaRunner(self,depth,alpha,beta,player,BlockNo) :
         if self.Blocks[BlockNo].Status == "War" :
-
             MoveSet = OrderMoves()
 
             self.MakeMove(BlockNo,MoveSet[0],player)
@@ -254,6 +237,70 @@ class Board() :
                     if score > beta :
                         break
 
+            return (BestMove,current)
+
+        # We are at a free node
+        else :
+            MoveSet = OrderBlocks()
+            current,BestMove = self.alphabetaRunner(max(depth-1,2),alpha,beta,player,MoveSet[0])
+
+            for i in range(1,len(MoveSet)) :
+                score,move = self.alpabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
+
+                # Case Our assumption Fails
+                if score > alpha and score < beta :
+                    score,move = self.alpabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
+
+                if score >= current :
+                    current = score
+                    BestMove = move
+                    if score > alpha :
+                        alpha = score
+                    if score > beta :
+                        break
+
+            return current,BestMove
+
+
+
+    def alphabeta(self,depth,alpha,beta,player,BlockNo) :
+
+        if depth == 0 or self.CheckGameOver() :
+            return self.FindBoardUtility()
+
+        # order the moves in the required order
+        if self.Blocks[BlockNo].Status == "War" :
+
+            MoveSet = OrderMoves()
+
+            self.MakeMove(BlockNo,MoveSet[0],player)
+
+            # For the thought best move do the complete search
+            current = -self.alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+            # BestMove = MoveSet[0]
+
+            self.UndoMove(BlockNo,MoveSet[0],player)
+
+            for i in range(1,len(MoveSet)) :
+                # Play according to assumption
+                self.MakeMove(Blocks,MoveSet[i],player)
+
+                score = -self.alpabeta(depth - 1,-alpha-1,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+
+                # Case where our assumption fails
+                if score > alpha and score < beta :
+                    score = -alpabeta(depth - 1,-beta,-alpha,player^1,self.FindNextBlock(BlockNo,MoveSet[0]))
+
+                self.UndoMove(Blocks,MoveSet[i],player)
+
+                if score >= current :
+                    current = score
+                    # BestMove = MoveSet[i]
+                    if score > alpha :
+                        alpha = score
+                    if score > beta :
+                        break
+
             return current
 
         # We are at a free node
@@ -263,6 +310,10 @@ class Board() :
 
             for i in range(1,len(MoveSet)) :
                 score = self.alpabeta(max(depth-1,2),alpha,alpha+1,player,MoveSet[i])
+
+                if score > alpha and score < beta :
+                    score = self.alpabeta(max(depth-1,2),alpha,beta,player,MoveSet[i])
+
                 if score >= current :
                     current = score
                     if score > alpha :

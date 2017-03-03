@@ -1,4 +1,4 @@
-from Cell4State imoort *
+from Cell4State import *
 LineState = Cell4State()
 class Block() :
     def __init__(self) :
@@ -11,14 +11,12 @@ class Block() :
         self.EmptyCells = 16
 
         # Current Utility of the Block
-        self.prevBlockUtility = 0
         self.BlockUtility = 4*lineState.StateUtility[0]
 
         self.Status = "War"
 
   # [ Current State][ Cell No ][ Player No]
     def UpdateForward(self,Move,Player) :
-        self.prevBlockUtility = self.BlockUtility
         # Update Row State
         self.BlockUtility += LineState.UtilityChangeForward[ self.Rows[Move[0]] ][ Move[1] ][ Player ]
         self.Rows[Move[0]] = LineState.ForwardAd[ self.Rows[Move[0]] ][ Move[1] ][ Player ]
@@ -55,7 +53,6 @@ class Block() :
         self.EmptyCells -= 1
 
     def UpdateBackward(self,Move,Player) :
-        self.prevBlockUtility = self.BlockUtility
         # Update Block Stats if relevent
         if self.Rows[Move[0]] == LineState.WinState or self.Cols[Move[1]] == LineState.WinState :
             self.Status = "War"

@@ -116,14 +116,14 @@ class Cell4State() :
         #     return self.BackwardAd[CurStateNo][Cell][Player]
 
 
-# a = Cell4State()
+a = Cell4State()
 # print a.AvailableMoves[0]
 # # print a.NormalizedUCF
 # # print "aa",a.States[str(['-','o','o','o'])]
 # # print "aa" , a.StateUtility[70]
-# b = [ "aak" for i in range(81)]
-# for state in a.States :
-#     b[a.States[state]] = state
+b = [ "aak" for i in range(81)]
+for state in a.States :
+    b[a.States[state]] = state
 #
 # print b[a.WinState]
 # print b[a.LoseState]
